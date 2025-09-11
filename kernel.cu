@@ -2462,12 +2462,12 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     if (xx * xx + yy * yy > 4.0)
     {
         s_2 = s_1;
-        s_2.y = 0.5;         // Противодавление
+        s_2.y = 0.1;         // Противодавление
         u_2 = u_1;
-        if (u_2.x * x + u_2.y * y < 0.1)
+        if (u_2.x * x + u_2.y * y < 0.0001)
         {
-            u_2.x = 0.1 * x / 2.0; // Против затекания жидкости
-            u_2.y = 0.1 * y / 2.0; // Против затекания жидкости
+            u_2.x = 0.0001 * x / 2.0; // Против затекания жидкости
+            u_2.y = 0.0001 * y / 2.0; // Против затекания жидкости
         }
     }
 
@@ -2476,12 +2476,12 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     if (xx * xx + yy * yy > 4.0)
     {
         s_5 = s_1;
-        s_5.y = 0.5;         // Противодавление
+        s_5.y = 0.1;         // Противодавление
         u_5 = u_1;
-        if (u_2.x * x + u_2.y * y < 0.1)
+        if (u_5.x * x + u_5.y * y < 0.0001)
         {
-            u_2.x = 0.1 * x / 2.0; // Против затекания жидкости
-            u_2.y = 0.1 * y / 2.0; // Против затекания жидкости
+            u_5.x = 0.0001 * x / 2.0; // Против затекания жидкости
+            u_5.y = 0.0001 * y / 2.0; // Против затекания жидкости
         }
     }
 
@@ -2809,11 +2809,15 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     // Декартова геометрия
     if (true)
     {
-        double alpha = 0.0;
-        if (dist <= 0.2) alpha = 0.0;
+        double alpha = 3.0;
 
-        double Q2x = -u[index].x * alpha / s[index].x;
-        double Q2y = -u[index].y * alpha / s[index].x;
+        double tx = ((s_2.x* kv(u_2.x) - s_4.x * kv(u_4.x)) / (2.0 * dx) +
+            (s_5.x * u_5.x * u_5.y - s_3.x * u_3.x * u_3.y) / (2.0 * dy))/15.0;
+        double ty = ((s_5.x * kv(u_5.y) - s_3.x * kv(u_3.y)) / (2.0 * dy) +
+            (s_2.x * u_2.x * u_2.y - s_4.x * u_4.x * u_4.y) / (2.0 * dx)) / 15.0;
+
+        double Q2x = (- u[index].x / s[index].x - tx) * alpha;
+        double Q2y = (- u[index].y / s[index].x - ty) * alpha;
         double Q3 = Q2x * u[index].x + Q2y * u[index].y;
 
         s2[index].x = s[index].x - (*T_do / dV) * PS.x;
@@ -3122,7 +3126,7 @@ int main(void)
     {
         double c1, c2, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14;
         ifstream fin; 
-        fin.open("h2.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
+        fin.open("h10.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
 
         for (int k = 0; k < K; k++)
         {
@@ -3860,7 +3864,7 @@ int main(void)
             print_file_mini(host_s, host_u, nn1, nn2, nn3, name);*/
         }
     }
-    for (int i = 0; i < 100000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 250000; i = i + 2)  // Сколько шагов по времени делаем?
     {
         if (i % 1000 == 0)
         {
@@ -3949,7 +3953,7 @@ int main(void)
             exit(-1);
         }
 
-        if (i % 5000 == 0)
+        if (i % 25000 == 0)
         {
             cudaEventRecord(stop, 0);
             cudaEventSynchronize(stop);
@@ -3959,7 +3963,7 @@ int main(void)
             cudaMemcpy(host_s, s, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_u, u, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_TT, TT, sizeof(double), cudaMemcpyDeviceToHost);
-            string name = "P_0.1_Tren_5.0_" + to_string(i) + ".txt";
+            string name = "P_h11_" + to_string(i) + ".txt";
             if (Time0 < 0.0)
             {
                 Time0 = *host_TT;
@@ -4078,7 +4082,7 @@ int main(void)
     
     ofstream fout;
     //fout.open("000.txt");
-    fout.open("h3.txt");
+    fout.open("h11.txt");
 
     ofstream fout2;
     fout2.open("param_for_texplot.txt");
