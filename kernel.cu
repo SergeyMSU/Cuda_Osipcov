@@ -2464,6 +2464,11 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
         s_2 = s_1;
         s_2.y = 0.5;         // Противодавление
         u_2 = u_1;
+        if (u_2.x * x + u_2.y * y < 0.1)
+        {
+            u_2.x = 0.1 * x / 2.0; // Против затекания жидкости
+            u_2.y = 0.1 * y / 2.0; // Против затекания жидкости
+        }
     }
 
     yy = y_min + (m + 1) * (y_max) / (M);
@@ -2473,6 +2478,11 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
         s_5 = s_1;
         s_5.y = 0.5;         // Противодавление
         u_5 = u_1;
+        if (u_2.x * x + u_2.y * y < 0.1)
+        {
+            u_2.x = 0.1 * x / 2.0; // Против затекания жидкости
+            u_2.y = 0.1 * y / 2.0; // Против затекания жидкости
+        }
     }
 
 
@@ -3137,49 +3147,6 @@ int main(void)
             np3[k] = a14;*/
         }
         fin.close();
-
-        for (int k = 0; k < K; k++)  // Заполняем начальные условия
-        {
-            nn1[k] = 0.0;
-            nn2[k] = { 0.0, 0.0, 0.0 };
-            nn3[k] = 0.0;
-            np1[k] = 0.0;
-            np2[k] = { 0.0, 0.0, 0.0 };
-            np3[k] = 0.0;
-            int n = k % N;                                   // номер ячейки по x (от 0)
-            int m = (k - n) / N;                             // номер ячейки по y (от 0)
-            double y = y_min + m * dy;
-            double x = x_min + n * dx;
-            double dist = sqrt(x * x + y * y);
-            double r_0 = 0.0049897;
-            double ro_E = 1.0 / (chi_ * chi_);
-            double P_E = ro_E * chi_ * chi_ / (ggg * 10.0 * 10.0);
-            double dist2 = kv(x + 1.0) + kv(y) ;
-            if (dist <= In_ * 1.01 || dist2 <= In2_ * 1.01)
-            {
-                host_s[k] = { ro_E / (dist * dist), P_E * pow(1.0 / dist, 2.0 * ggg) };
-                host_u[k] = { chi_ * x / dist , chi_ * y / dist };
-                host_s2[k] = { ro_E / (dist * dist), P_E * pow(1.0 / dist, 2.0 * ggg) };
-                host_u2[k] = { chi_ * x / dist , chi_ * y / dist };
-            }
-
-            /*if (x < -8.0 && y < 1.0)
-            {
-                host_s[k] = { 0.002, 0.13 };
-                host_u[k] = { -0.8 , 0.0 };
-                host_s2[k] = { 0.002, 0.13 };
-                host_u2[k] = { -0.8 , 0.0 };
-            }*/
-
-            if (x > 2.5)
-            {
-                host_s[k] = { 1.0, 1.0 / (ggg * kv(M_inf_)) };
-                host_u[k] = { -1.0, 0.0 };
-                host_s2[k] = { 1.0, 1.0 / (ggg * kv(M_inf_)) };
-                host_u2[k] = { -1.0, 0.0 };
-            }
-        }
-
     }
 
     
