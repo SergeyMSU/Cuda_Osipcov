@@ -20,3 +20,11 @@
 Cuda/.vs/Cuda/v17/.suo
 
 *.sln
+
+Cuda_Osipcov_1/.vs/Cuda_Osipcov_1/v17/.suo
+
+*.db-shm
+
+*.db-wal
+
+*.opendb

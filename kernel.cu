@@ -2462,6 +2462,7 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     if (xx * xx + yy * yy > 4.0)
     {
         s_2 = s_1;
+        s_2.y = 0.5;         // Противодавление
         u_2 = u_1;
     }
 
@@ -2470,6 +2471,7 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     if (xx * xx + yy * yy > 4.0)
     {
         s_5 = s_1;
+        s_5.y = 0.5;         // Противодавление
         u_5 = u_1;
     }
 
@@ -3106,11 +3108,11 @@ int main(void)
     }
 
 
-    if (false)
+    if (true)
     {
         double c1, c2, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14;
         ifstream fin; 
-        fin.open("h15_Instable_HLLC.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
+        fin.open("h2.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
 
         for (int k = 0; k < K; k++)
         {
@@ -4109,7 +4111,7 @@ int main(void)
     
     ofstream fout;
     //fout.open("000.txt");
-    fout.open("h2.txt");
+    fout.open("h3.txt");
 
     ofstream fout2;
     fout2.open("param_for_texplot.txt");
