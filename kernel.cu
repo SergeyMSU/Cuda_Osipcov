@@ -2396,7 +2396,7 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
 
     //if ((n == N - 1) || (dist < In_) || (dist2 < In2_)) // Жёсткие граничные условия
 
-   if (dist <= In_ || dist > 2.0) // Жёсткие граничные условия
+   if (dist <= In_ || dist > 0.8) // Жёсткие граничные условия
     {
         // В этих ячейках значения параметров зафиксированы и не меняются с течением времени)
         s2[index] = s_1;
@@ -2459,10 +2459,10 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
 
     double yy = y_min + m * (y_max) / (M);
     double xx = x_min + (n + 1) * (x_max - x_min) / (N - 1);
-    if (xx * xx + yy * yy > 4.0)
+    if ( sqrt(xx * xx + yy * yy) > 0.8)
     {
         s_2 = s_1;
-        s_2.y = 0.1;         // Противодавление
+        s_2.y = 0.13;         // Противодавление
         u_2 = u_1;
         if (u_2.x * x + u_2.y * y < 0.0001)
         {
@@ -2473,10 +2473,10 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
 
     yy = y_min + (m + 1) * (y_max) / (M);
     xx = x_min + (n) * (x_max - x_min) / (N - 1);
-    if (xx * xx + yy * yy > 4.0)
+    if (sqrt(xx * xx + yy * yy) > 0.8)
     {
         s_5 = s_1;
-        s_5.y = 0.1;         // Противодавление
+        s_5.y = 0.13;         // Противодавление
         u_5 = u_1;
         if (u_5.x * x + u_5.y * y < 0.0001)
         {
@@ -2809,12 +2809,12 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     // Декартова геометрия
     if (true)
     {
-        double alpha = 3.0;
+        double alpha = 4.0;
 
-        double tx = ((s_2.x* kv(u_2.x) - s_4.x * kv(u_4.x)) / (2.0 * dx) +
-            (s_5.x * u_5.x * u_5.y - s_3.x * u_3.x * u_3.y) / (2.0 * dy))/15.0;
-        double ty = ((s_5.x * kv(u_5.y) - s_3.x * kv(u_3.y)) / (2.0 * dy) +
-            (s_2.x * u_2.x * u_2.y - s_4.x * u_4.x * u_4.y) / (2.0 * dx)) / 15.0;
+        double tx = 0.0;//((s_2.x* kv(u_2.x) - s_4.x * kv(u_4.x)) / (2.0 * dx) +
+            //(s_5.x * u_5.x * u_5.y - s_3.x * u_3.x * u_3.y) / (2.0 * dy))/15.0;
+        double ty = 0.0;//((s_5.x* kv(u_5.y) - s_3.x * kv(u_3.y)) / (2.0 * dy) +
+            //(s_2.x * u_2.x * u_2.y - s_4.x * u_4.x * u_4.y) / (2.0 * dx)) / 15.0;
 
         double Q2x = (- u[index].x / s[index].x - tx) * alpha;
         double Q2y = (- u[index].y / s[index].x - ty) * alpha;
@@ -3122,7 +3122,7 @@ int main(void)
     }
 
 
-    if (true)
+    if (false)
     {
         double c1, c2, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14;
         ifstream fin; 
@@ -4082,7 +4082,7 @@ int main(void)
     
     ofstream fout;
     //fout.open("000.txt");
-    fout.open("h11.txt");
+    fout.open("j1.txt");
 
     ofstream fout2;
     fout2.open("param_for_texplot.txt");
