@@ -2462,7 +2462,7 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     if ( sqrt(xx * xx + yy * yy) > 0.8)
     {
         s_2 = s_1;
-        s_2.y = 0.13;         // Противодавление
+        s_2.y = 0.056;         // Противодавление
         u_2 = u_1;
         if (u_2.x * x + u_2.y * y < 0.0001)
         {
@@ -2476,7 +2476,7 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     if (sqrt(xx * xx + yy * yy) > 0.8)
     {
         s_5 = s_1;
-        s_5.y = 0.13;         // Противодавление
+        s_5.y = 0.056;         // Противодавление
         u_5 = u_1;
         if (u_5.x * x + u_5.y * y < 0.0001)
         {
@@ -2809,15 +2809,22 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     // Декартова геометрия
     if (true)
     {
-        double alpha = 4.0;
+        double alpha = 0.3;  // 0.3
+
+        if (dist < 0.3)
+        {
+            alpha = 0.0;
+        }
 
         double tx = 0.0;//((s_2.x* kv(u_2.x) - s_4.x * kv(u_4.x)) / (2.0 * dx) +
             //(s_5.x * u_5.x * u_5.y - s_3.x * u_3.x * u_3.y) / (2.0 * dy))/15.0;
         double ty = 0.0;//((s_5.x* kv(u_5.y) - s_3.x * kv(u_3.y)) / (2.0 * dy) +
             //(s_2.x * u_2.x * u_2.y - s_4.x * u_4.x * u_4.y) / (2.0 * dx)) / 15.0;
 
-        double Q2x = (- u[index].x / s[index].x - tx) * alpha;
-        double Q2y = (- u[index].y / s[index].x - ty) * alpha;
+        double uu = sqrt(kv(u[index].x) + kv(u[index].y));
+
+        double Q2x = (-u[index].x / kv(uu) * s[index].x - tx) * alpha;
+        double Q2y = (-u[index].y / kv(uu) * s[index].x - ty) * alpha;
         double Q3 = Q2x * u[index].x + Q2y * u[index].y;
 
         s2[index].x = s[index].x - (*T_do / dV) * PS.x;
@@ -3122,11 +3129,11 @@ int main(void)
     }
 
 
-    if (false)
+    if (true)
     {
         double c1, c2, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14;
         ifstream fin; 
-        fin.open("h10.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
+        fin.open("j3.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
 
         for (int k = 0; k < K; k++)
         {
@@ -3151,6 +3158,34 @@ int main(void)
             np3[k] = a14;*/
         }
         fin.close();
+
+        for (int k = 0; k < K; k++)  // Заполняем начальные условия
+        {
+            int n = k % N;                                   // номер ячейки по x (от 0)
+            int m = (k - n) / N;                             // номер ячейки по y (от 0)
+            double y = y_min + m * dy;
+            double x = x_min + n * dx;
+
+            double dist = sqrt(x * x + y * y);
+            if (false)//(dist > 0.17)
+            {
+                double u = 0.09164542330087837 + (-0.3641041382185622 + (0.8815359244690003 -
+                    3.0230850112823555 * (-0.47 + dist)) * (-0.17 +
+                        dist)) * (-0.770000000000000 + dist);
+                double rho = 1.417093392078893 + (-0.799632811192542 + (-1.04025876908231 +
+                    4.19196691045350 * (-0.47 + dist)) * (-0.17 +
+                        dist)) * (-0.7700000000000001 + dist);
+                double p = 0.1373819908048013 + (-0.1812890357271155 + (-0.547681316638745 +
+                    1.389550390248759 * (-0.37 + dist)) * (-0.17 +
+                        dist)) * (-0.770000000000000 + dist);
+                host_s[k] = { rho, p};
+                host_u[k] = { u * x / dist , u * y / dist };
+                host_s2[k] = host_s[k];
+                host_u2[k] = host_u[k];
+            }
+        }
+
+
     }
 
     
@@ -3864,7 +3899,7 @@ int main(void)
             print_file_mini(host_s, host_u, nn1, nn2, nn3, name);*/
         }
     }
-    for (int i = 0; i < 250000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 300000; i = i + 2)  // Сколько шагов по времени делаем?
     {
         if (i % 1000 == 0)
         {
@@ -3953,7 +3988,7 @@ int main(void)
             exit(-1);
         }
 
-        if (i % 25000 == 0)
+        if (i % 3000 == 0)
         {
             cudaEventRecord(stop, 0);
             cudaEventSynchronize(stop);
@@ -3963,7 +3998,7 @@ int main(void)
             cudaMemcpy(host_s, s, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_u, u, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_TT, TT, sizeof(double), cudaMemcpyDeviceToHost);
-            string name = "P_h11_" + to_string(i) + ".txt";
+            string name = "P_j3_" + to_string(i) + ".txt";
             if (Time0 < 0.0)
             {
                 Time0 = *host_TT;
@@ -4082,7 +4117,7 @@ int main(void)
     
     ofstream fout;
     //fout.open("000.txt");
-    fout.open("j1.txt");
+    fout.open("j4.txt");
 
     ofstream fout2;
     fout2.open("param_for_texplot.txt");
