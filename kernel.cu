@@ -2459,30 +2459,45 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
 
     double yy = y_min + m * (y_max) / (M);
     double xx = x_min + (n + 1) * (x_max - x_min) / (N - 1);
-    if ( sqrt(xx * xx + yy * yy) > 0.8)
+    double dist_ = sqrt(xx * xx + yy * yy);
+
+    if (dist_ > 0.8)
     {
-        s_2 = s_1;
-        s_2.y = 0.056;         // Противодавление
-        u_2 = u_1;
-        if (u_2.x * x + u_2.y * y < 0.0001)
-        {
-            u_2.x = 0.0001 * x / 2.0; // Против затекания жидкости
-            u_2.y = 0.0001 * y / 2.0; // Против затекания жидкости
-        }
+        double u0 = sqrt(kv(u_1.x) + kv(u_1.y));
+        double rho0 = s_1.x;
+        double p0 = s_1.y;
+        double p1 = 0.03;           // Противодавление
+        double rho1 = pow(p1 / p0, 1.0 / ggg) * rho0;
+        double a0 = sqrt(ggg * p0 / rho0);
+        double a1 = sqrt(ggg * p1 / rho1);
+        double u1 = u0 + 2.0 / (ggg - 1.0) * (a0 - a1);
+        if (u1 < 0.0) u1 = 0.0001;
+
+        s_2.x = rho1;
+        s_2.y = p1;
+        u_2.x = u1 * xx / dist_;
+        u_2.y = u1 * yy / dist_;
     }
 
     yy = y_min + (m + 1) * (y_max) / (M);
     xx = x_min + (n) * (x_max - x_min) / (N - 1);
-    if (sqrt(xx * xx + yy * yy) > 0.8)
+    dist_ = sqrt(xx * xx + yy * yy);
+    if (dist_ > 0.8)
     {
-        s_5 = s_1;
-        s_5.y = 0.056;         // Противодавление
-        u_5 = u_1;
-        if (u_5.x * x + u_5.y * y < 0.0001)
-        {
-            u_5.x = 0.0001 * x / 2.0; // Против затекания жидкости
-            u_5.y = 0.0001 * y / 2.0; // Против затекания жидкости
-        }
+        double u0 = sqrt(kv(u_1.x) + kv(u_1.y));
+        double rho0 = s_1.x;
+        double p0 = s_1.y;
+        double p1 = 0.03;           // Противодавление
+        double rho1 = pow(p1 / p0, 1.0 / ggg) * rho0;
+        double a0 = sqrt(ggg * p0 / rho0);
+        double a1 = sqrt(ggg * p1 / rho1);
+        double u1 = u0 + 2.0 / (ggg - 1.0) * (a0 - a1);
+        if (u1 < 0.0) u1 = 0.0001;
+
+        s_5.x = rho1;
+        s_5.y = p1;
+        u_5.x = u1 * xx / dist_;
+        u_5.y = u1 * yy / dist_;
     }
 
 
@@ -2809,22 +2824,16 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     // Декартова геометрия
     if (true)
     {
-        double alpha = 0.3;  // 0.3
+        double alpha = 3.0;  // 0.3
 
-        if (dist < 0.3)
-        {
-            alpha = 0.0;
-        }
 
         double tx = 0.0;//((s_2.x* kv(u_2.x) - s_4.x * kv(u_4.x)) / (2.0 * dx) +
             //(s_5.x * u_5.x * u_5.y - s_3.x * u_3.x * u_3.y) / (2.0 * dy))/15.0;
         double ty = 0.0;//((s_5.x* kv(u_5.y) - s_3.x * kv(u_3.y)) / (2.0 * dy) +
             //(s_2.x * u_2.x * u_2.y - s_4.x * u_4.x * u_4.y) / (2.0 * dx)) / 15.0;
 
-        double uu = sqrt(kv(u[index].x) + kv(u[index].y));
-
-        double Q2x = (-u[index].x / kv(uu) * s[index].x - tx) * alpha;
-        double Q2y = (-u[index].y / kv(uu) * s[index].x - ty) * alpha;
+        double Q2x = (-u[index].x / s[index].x - tx) * alpha;
+        double Q2y = (-u[index].y / s[index].x - ty) * alpha;
         double Q3 = Q2x * u[index].x + Q2y * u[index].y;
 
         s2[index].x = s[index].x - (*T_do / dV) * PS.x;
@@ -3167,7 +3176,7 @@ int main(void)
             double x = x_min + n * dx;
 
             double dist = sqrt(x * x + y * y);
-            if (false)//(dist > 0.17)
+            if (dist > 0.17)
             {
                 double u = 0.09164542330087837 + (-0.3641041382185622 + (0.8815359244690003 -
                     3.0230850112823555 * (-0.47 + dist)) * (-0.17 +
@@ -3899,7 +3908,7 @@ int main(void)
             print_file_mini(host_s, host_u, nn1, nn2, nn3, name);*/
         }
     }
-    for (int i = 0; i < 300000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 100000; i = i + 2)  // Сколько шагов по времени делаем?
     {
         if (i % 1000 == 0)
         {
@@ -3988,7 +3997,7 @@ int main(void)
             exit(-1);
         }
 
-        if (i % 3000 == 0)
+        if (i % 6000 == 0)
         {
             cudaEventRecord(stop, 0);
             cudaEventSynchronize(stop);
@@ -3998,7 +4007,7 @@ int main(void)
             cudaMemcpy(host_s, s, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_u, u, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_TT, TT, sizeof(double), cudaMemcpyDeviceToHost);
-            string name = "P_j3_" + to_string(i) + ".txt";
+            string name = "P_j4_" + to_string(i) + ".txt";
             if (Time0 < 0.0)
             {
                 Time0 = *host_TT;
