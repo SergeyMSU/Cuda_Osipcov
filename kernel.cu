@@ -2470,13 +2470,14 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
         double rho1 = pow(p1 / p0, 1.0 / ggg) * rho0;
         double a0 = sqrt(ggg * p0 / rho0);
         double a1 = sqrt(ggg * p1 / rho1);
-        double u1 = u0 + 2.0 / (ggg - 1.0) * (a0 - a1);
+        //double u1 = u0 + 2.0 / (ggg - 1.0) * (a0 - a1);
+        double u1 = a1;
         if (u1 < 0.0) u1 = 0.0001;
 
         s_2.x = rho1;
         s_2.y = p1;
-        u_2.x = u1 * xx / dist_;
-        u_2.y = u1 * yy / dist_;
+        u_2.x = u1 * u_1.x / u0;
+        u_2.y = u1 * u_1.y / u0;
     }
 
     yy = y_min + (m + 1) * (y_max) / (M);
@@ -2491,13 +2492,14 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
         double rho1 = pow(p1 / p0, 1.0 / ggg) * rho0;
         double a0 = sqrt(ggg * p0 / rho0);
         double a1 = sqrt(ggg * p1 / rho1);
-        double u1 = u0 + 2.0 / (ggg - 1.0) * (a0 - a1);
+        //double u1 = u0 + 2.0 / (ggg - 1.0) * (a0 - a1);
+        double u1 = a1;
         if (u1 < 0.0) u1 = 0.0001;
 
         s_5.x = rho1;
         s_5.y = p1;
-        u_5.x = u1 * xx / dist_;
-        u_5.y = u1 * yy / dist_;
+        u_5.x = u1 * u_1.x / u0;
+        u_5.y = u1 * u_1.y / u0;
     }
 
 
@@ -2824,7 +2826,7 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     // Декартова геометрия
     if (true)
     {
-        double alpha = 3.0;  // 0.3
+        double alpha = 8.0;  // 0.3
 
 
         double tx = 0.0;//((s_2.x* kv(u_2.x) - s_4.x * kv(u_4.x)) / (2.0 * dx) +
@@ -3142,7 +3144,7 @@ int main(void)
     {
         double c1, c2, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14;
         ifstream fin; 
-        fin.open("j3.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
+        fin.open("j4.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
 
         for (int k = 0; k < K; k++)
         {
@@ -3176,7 +3178,15 @@ int main(void)
             double x = x_min + n * dx;
 
             double dist = sqrt(x * x + y * y);
-            if (dist > 0.17)
+
+            // Вносим ассиметрию
+            if (y < 0.1)
+            {
+                host_s[k].y = host_s[k].y * 1.2;
+                host_s2[k].y = host_s2[k].y * 1.2;
+            }
+
+            if (false)//(dist > 0.17)
             {
                 double u = 0.09164542330087837 + (-0.3641041382185622 + (0.8815359244690003 -
                     3.0230850112823555 * (-0.47 + dist)) * (-0.17 +
@@ -3997,7 +4007,7 @@ int main(void)
             exit(-1);
         }
 
-        if (i % 6000 == 0)
+        if (i % 10000 == 0)
         {
             cudaEventRecord(stop, 0);
             cudaEventSynchronize(stop);
@@ -4007,7 +4017,7 @@ int main(void)
             cudaMemcpy(host_s, s, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_u, u, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_TT, TT, sizeof(double), cudaMemcpyDeviceToHost);
-            string name = "P_j4_" + to_string(i) + ".txt";
+            string name = "P_j5_" + to_string(i) + ".txt";
             if (Time0 < 0.0)
             {
                 Time0 = *host_TT;
@@ -4126,7 +4136,7 @@ int main(void)
     
     ofstream fout;
     //fout.open("000.txt");
-    fout.open("j4.txt");
+    fout.open("j5.txt");
 
     ofstream fout2;
     fout2.open("param_for_texplot.txt");
