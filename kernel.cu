@@ -2396,7 +2396,7 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
 
     //if ((n == N - 1) || (dist < In_) || (dist2 < In2_)) // Жёсткие граничные условия
 
-   if (dist <= In_ || dist > 0.8) // Жёсткие граничные условия
+   if (dist <= In_ || dist > In2_) // Жёсткие граничные условия
     {
         // В этих ячейках значения параметров зафиксированы и не меняются с течением времени)
         s2[index] = s_1;
@@ -2461,17 +2461,17 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     double xx = x_min + (n + 1) * (x_max - x_min) / (N - 1);
     double dist_ = sqrt(xx * xx + yy * yy);
 
-    if (dist_ > 0.8)
+    if (dist_ > In2_)
     {
         double u0 = sqrt(kv(u_1.x) + kv(u_1.y));
         double rho0 = s_1.x;
         double p0 = s_1.y;
-        double p1 = 0.03;           // Противодавление
+        double p1 = 0.01;           // Противодавление
         double rho1 = pow(p1 / p0, 1.0 / ggg) * rho0;
         double a0 = sqrt(ggg * p0 / rho0);
         double a1 = sqrt(ggg * p1 / rho1);
-        //double u1 = u0 + 2.0 / (ggg - 1.0) * (a0 - a1);
-        double u1 = a1;
+        double u1 = u0 + 2.0 / (ggg - 1.0) * (a0 - a1);
+        //double u1 = a1;
         if (u1 < 0.0) u1 = 0.0001;
 
         s_2.x = rho1;
@@ -2483,17 +2483,17 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     yy = y_min + (m + 1) * (y_max) / (M);
     xx = x_min + (n) * (x_max - x_min) / (N - 1);
     dist_ = sqrt(xx * xx + yy * yy);
-    if (dist_ > 0.8)
+    if (dist_ > In2_)
     {
         double u0 = sqrt(kv(u_1.x) + kv(u_1.y));
         double rho0 = s_1.x;
         double p0 = s_1.y;
-        double p1 = 0.03;           // Противодавление
+        double p1 = 0.01;           // Противодавление
         double rho1 = pow(p1 / p0, 1.0 / ggg) * rho0;
         double a0 = sqrt(ggg * p0 / rho0);
         double a1 = sqrt(ggg * p1 / rho1);
-        //double u1 = u0 + 2.0 / (ggg - 1.0) * (a0 - a1);
-        double u1 = a1;
+        double u1 = u0 + 2.0 / (ggg - 1.0) * (a0 - a1);
+        //double u1 = a1;
         if (u1 < 0.0) u1 = 0.0001;
 
         s_5.x = rho1;
@@ -2826,7 +2826,7 @@ __global__ void Kernel_TVD(double2* s, double2* u, double2* s2, double2* u2, dou
     // Декартова геометрия
     if (true)
     {
-        double alpha = 8.0;  // 0.3
+        double alpha = 15.0;  // 0.3
 
 
         double tx = 0.0;//((s_2.x* kv(u_2.x) - s_4.x * kv(u_4.x)) / (2.0 * dx) +
@@ -3142,33 +3142,33 @@ int main(void)
 
     if (true)
     {
-        double c1, c2, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14;
-        ifstream fin; 
-        fin.open("j4.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
+        //double c1, c2, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14;
+        //ifstream fin; 
+        //fin.open("j4.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
 
-        for (int k = 0; k < K; k++)
-        {
-            fin >> c1 >> c2 >> a1 >> a2 >> a3 >> a4;// >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14;
-            host_s[k].x = a1;
-            host_s[k].y = a2;
-            host_u[k].x = a3;
-            host_u[k].y = a4;
-            host_s2[k].x = a1;
-            host_s2[k].y = a2;
-            host_u2[k].x = a3;
-            host_u2[k].y = a4;
-            /*nn1[k] = a5;
-            nn2[k].x = a6;
-            nn2[k].y = a7;
-            nn2[k].z = a8;
-            nn3[k] = a9;
-            np1[k] = a10;
-            np2[k].x = a11;
-            np2[k].y = a12;
-            np2[k].z = a13;
-            np3[k] = a14;*/
-        }
-        fin.close();
+        //for (int k = 0; k < K; k++)
+        //{
+        //    fin >> c1 >> c2 >> a1 >> a2 >> a3 >> a4;// >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14;
+        //    host_s[k].x = a1;
+        //    host_s[k].y = a2;
+        //    host_u[k].x = a3;
+        //    host_u[k].y = a4;
+        //    host_s2[k].x = a1;
+        //    host_s2[k].y = a2;
+        //    host_u2[k].x = a3;
+        //    host_u2[k].y = a4;
+        //    /*nn1[k] = a5;
+        //    nn2[k].x = a6;
+        //    nn2[k].y = a7;
+        //    nn2[k].z = a8;
+        //    nn3[k] = a9;
+        //    np1[k] = a10;
+        //    np2[k].x = a11;
+        //    np2[k].y = a12;
+        //    np2[k].z = a13;
+        //    np3[k] = a14;*/
+        //}
+        //fin.close();
 
         for (int k = 0; k < K; k++)  // Заполняем начальные условия
         {
@@ -3179,15 +3179,11 @@ int main(void)
 
             double dist = sqrt(x * x + y * y);
 
-            // Вносим ассиметрию
-            if (y < 0.1)
-            {
-                host_s[k].y = host_s[k].y * 1.2;
-                host_s2[k].y = host_s2[k].y * 1.2;
-            }
 
-            if (false)//(dist > 0.17)
+            if (dist > 0.3)
             {
+                if (dist > 0.8) dist = 0.8;
+
                 double u = 0.09164542330087837 + (-0.3641041382185622 + (0.8815359244690003 -
                     3.0230850112823555 * (-0.47 + dist)) * (-0.17 +
                         dist)) * (-0.770000000000000 + dist);
@@ -3198,7 +3194,7 @@ int main(void)
                     1.389550390248759 * (-0.37 + dist)) * (-0.17 +
                         dist)) * (-0.770000000000000 + dist);
                 host_s[k] = { rho, p};
-                host_u[k] = { u * x / dist , u * y / dist };
+                host_u[k] = { u * x / sqrt(x * x + y * y) , u * y / sqrt(x * x + y * y) };
                 host_s2[k] = host_s[k];
                 host_u2[k] = host_u[k];
             }
@@ -4007,7 +4003,7 @@ int main(void)
             exit(-1);
         }
 
-        if (i % 10000 == 0)
+        if ((i <= 20000 && i % 1000 == 0)||(i % 10000 == 0))
         {
             cudaEventRecord(stop, 0);
             cudaEventSynchronize(stop);
@@ -4017,7 +4013,7 @@ int main(void)
             cudaMemcpy(host_s, s, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_u, u, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_TT, TT, sizeof(double), cudaMemcpyDeviceToHost);
-            string name = "P_j5_" + to_string(i) + ".txt";
+            string name = "P_l1_" + to_string(i) + ".txt";
             if (Time0 < 0.0)
             {
                 Time0 = *host_TT;
@@ -4136,7 +4132,7 @@ int main(void)
     
     ofstream fout;
     //fout.open("000.txt");
-    fout.open("j5.txt");
+    fout.open("l1.txt");
 
     ofstream fout2;
     fout2.open("param_for_texplot.txt");
