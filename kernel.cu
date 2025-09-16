@@ -3142,33 +3142,33 @@ int main(void)
 
     if (true)
     {
-        //double c1, c2, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14;
-        //ifstream fin; 
-        //fin.open("j4.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
+        double c1, c2, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14;
+        ifstream fin; 
+        fin.open("l2.txt");  // 6Instable_HLLC_17_2_0.3_0.3_1792_1536_9_3_10.txt
 
-        //for (int k = 0; k < K; k++)
-        //{
-        //    fin >> c1 >> c2 >> a1 >> a2 >> a3 >> a4;// >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14;
-        //    host_s[k].x = a1;
-        //    host_s[k].y = a2;
-        //    host_u[k].x = a3;
-        //    host_u[k].y = a4;
-        //    host_s2[k].x = a1;
-        //    host_s2[k].y = a2;
-        //    host_u2[k].x = a3;
-        //    host_u2[k].y = a4;
-        //    /*nn1[k] = a5;
-        //    nn2[k].x = a6;
-        //    nn2[k].y = a7;
-        //    nn2[k].z = a8;
-        //    nn3[k] = a9;
-        //    np1[k] = a10;
-        //    np2[k].x = a11;
-        //    np2[k].y = a12;
-        //    np2[k].z = a13;
-        //    np3[k] = a14;*/
-        //}
-        //fin.close();
+        for (int k = 0; k < K; k++)
+        {
+            fin >> c1 >> c2 >> a1 >> a2 >> a3 >> a4;// >> a5 >> a6 >> a7 >> a8 >> a9 >> a10 >> a11 >> a12 >> a13 >> a14;
+            host_s[k].x = a1;
+            host_s[k].y = a2;
+            host_u[k].x = a3;
+            host_u[k].y = a4;
+            host_s2[k].x = a1;
+            host_s2[k].y = a2;
+            host_u2[k].x = a3;
+            host_u2[k].y = a4;
+            /*nn1[k] = a5;
+            nn2[k].x = a6;
+            nn2[k].y = a7;
+            nn2[k].z = a8;
+            nn3[k] = a9;
+            np1[k] = a10;
+            np2[k].x = a11;
+            np2[k].y = a12;
+            np2[k].z = a13;
+            np3[k] = a14;*/
+        }
+        fin.close();
 
         for (int k = 0; k < K; k++)  // Заполняем начальные условия
         {
@@ -3180,7 +3180,7 @@ int main(void)
             double dist = sqrt(x * x + y * y);
 
 
-            if (dist > 0.3)
+            if (false)// (dist > 0.3)
             {
                 if (dist > 0.8) dist = 0.8;
 
@@ -3914,7 +3914,7 @@ int main(void)
             print_file_mini(host_s, host_u, nn1, nn2, nn3, name);*/
         }
     }
-    for (int i = 0; i < 100000; i = i + 2)  // Сколько шагов по времени делаем?
+    for (int i = 0; i < 500000; i = i + 2)  // Сколько шагов по времени делаем?
     {
         if (i % 1000 == 0)
         {
@@ -4003,7 +4003,7 @@ int main(void)
             exit(-1);
         }
 
-        if ((i <= 20000 && i % 1000 == 0)||(i % 10000 == 0))
+        if ((i % 10000 == 0))
         {
             cudaEventRecord(stop, 0);
             cudaEventSynchronize(stop);
@@ -4013,7 +4013,7 @@ int main(void)
             cudaMemcpy(host_s, s, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_u, u, size, cudaMemcpyDeviceToHost);
             cudaMemcpy(host_TT, TT, sizeof(double), cudaMemcpyDeviceToHost);
-            string name = "P_l1_" + to_string(i) + ".txt";
+            string name = "P_l2_" + to_string(i) + ".txt";
             if (Time0 < 0.0)
             {
                 Time0 = *host_TT;
@@ -4132,7 +4132,7 @@ int main(void)
     
     ofstream fout;
     //fout.open("000.txt");
-    fout.open("l1.txt");
+    fout.open("l3.txt");
 
     ofstream fout2;
     fout2.open("param_for_texplot.txt");
